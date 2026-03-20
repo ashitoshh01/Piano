@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Web Harmonium</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --bg: #0a0a0f;
+  --border: rgba(255,255,255,0.06);
+  --accent: #7c6fff;
+  --accent2: #ff6f91;
+  --text: #e8e8f0;
+  --text-dim: rgba(232,232,240,0.4);
+  --card-bg: rgba(255,255,255,0.025);
+  --ring-bg: rgba(255,255,255,0.04);
+  --ring-border: rgba(255,255,255,0.08);
+  --ring-shadow: rgba(0,0,0,0.6);
+  --slider-track: rgba(255,255,255,0.08);
+  --select-bg: rgba(255,255,255,0.04);
+  --btn-bg: rgba(255,255,255,0.05);
+  --drawer-bg: #0f0f18;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+body.light {
+  --bg: #f0eff8;
+  --border: rgba(0,0,0,0.09);
+  --text: #1a1830;
+  --text-dim: rgba(26,24,48,0.38);
+  --card-bg: rgba(255,255,255,0.7);
+  --ring-bg: rgba(255,255,255,0.75);
+  --ring-border: rgba(124,111,255,0.18);
+  --ring-shadow: rgba(100,90,180,0.12);
+  --slider-track: rgba(0,0,0,0.08);
+  --select-bg: rgba(255,255,255,0.6);
+  --btn-bg: rgba(255,255,255,0.55);
+  --drawer-bg: #e8e6f5;
+}
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh; min-height: 100dvh;
+  overflow-x: hidden;
+  transition: background 0.35s, color 0.35s;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,111,255,0.13) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 10% 80%,  rgba(255,111,145,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 90% 70%,  rgba(111,255,212,0.05) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+  transition: opacity 0.35s;
+}
+body.light::before { opacity: 0.45; }
+
+/* ══════════════════════════════════════════════════════════════
+   DESKTOP LAYOUT
+══════════════════════════════════════════════════════════════ */
+.app {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 20px 48px; gap: 40px;
+}
+
+.top-bar {
+  width: 100%; max-width: 760px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+
+header { letter-spacing: 0.02em; }
+header h1 {
+  font-family: 'Cormorant Garamond', serif; font-weight: 300;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 50%, var(--accent2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  letter-spacing: 0.1em; line-height: 1;
+}
+header p {
+  font-size: 0.7rem; color: var(--text-dim);
+  letter-spacing: 0.3em; text-transform: uppercase; margin-top: 6px;
+}
+
+/* Theme button */
+.theme-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px 7px 11px;
+  background: var(--btn-bg); border: 1px solid var(--border);
+  border-radius: 20px; cursor: pointer;
+  color: var(--text-dim); font-family: 'DM Sans', sans-serif;
+  font-size: 0.63rem; letter-spacing: 0.18em; text-transform: uppercase;
+  transition: all 0.22s; white-space: nowrap;
+  backdrop-filter: blur(12px); flex-shrink: 0; margin-top: 8px;
+}
+.theme-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(124,111,255,0.1); }
+.theme-icon { font-size: 15px; line-height: 1; transition: transform 0.4s; display: block; }
+.theme-btn:hover .theme-icon { transform: rotate(22deg) scale(1.1); }
+
+/* Piano stage */
+.piano-stage { width: 100%; max-width: 860px; display: flex; flex-direction: column; align-items: center; }
+
+.piano-glow-ring {
+  width: 100%; max-width: 760px;
+  padding: 28px 32px 32px;
+  background: var(--ring-bg); border: 1px solid var(--ring-border); border-radius: 24px;
+  box-shadow: 0 0 0 1px rgba(124,111,255,0.08), 0 0 60px rgba(124,111,255,0.06),
+              0 40px 80px var(--ring-shadow), inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px); position: relative; overflow: hidden;
+  transition: background 0.35s, border-color 0.35s, box-shadow 0.35s;
+}
+.piano-glow-ring::before {
+  content: ''; position: absolute; top: -1px; left: 20%; right: 20%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.5;
+}
+.piano-label {
+  font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 18px; text-align: center;
+}
+.piano-top-bar {
+  width: 100%; height: 8px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), rgba(124,111,255,0.12), rgba(255,255,255,0.05), transparent);
+  border-radius: 4px 4px 0 0; margin-bottom: 2px;
+}
+
+/* Piano keys */
+.piano { position: relative; height: 140px; user-select: none; touch-action: none; }
+
+.white-key {
+  position: absolute; width: 44px; height: 140px;
+  background: linear-gradient(180deg, #f2f2f8 0%, #e0e0ee 100%);
+  border: 1px solid rgba(0,0,0,0.15); border-top: none;
+  border-radius: 0 0 8px 8px; cursor: pointer;
+  transition: background 0.05s, transform 0.05s, box-shadow 0.05s;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.35), inset 0 -2px 4px rgba(0,0,0,0.08);
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  padding-bottom: 10px; z-index: 1;
+}
+.white-key:hover  { background: linear-gradient(180deg,#fff 0%,#ededfa 100%); box-shadow: 0 6px 20px rgba(124,111,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.08); }
+.white-key.active { background: linear-gradient(180deg,#d8d4ff 0%,#b8b0ff 100%); transform: translateY(3px); box-shadow: 0 2px 8px rgba(124,111,255,0.5), inset 0 2px 4px rgba(0,0,0,0.1); }
+
+.black-key {
+  position: absolute; width: 28px; height: 86px;
+  background: linear-gradient(180deg, #1a1a24 0%, #0a0a12 100%);
+  border-radius: 0 0 5px 5px; cursor: pointer; z-index: 2; top: 0;
+  transition: background 0.05s, transform 0.05s, box-shadow 0.05s;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 8px;
+}
+.black-key:hover  { background: linear-gradient(180deg,#2a2a3a 0%,#111120 100%); box-shadow: 0 8px 20px rgba(124,111,255,0.25), inset 0 1px 0 rgba(255,255,255,0.08); }
+.black-key.active { background: linear-gradient(180deg,#4a4080 0%,#2a2060 100%); transform: translateY(3px); box-shadow: 0 2px 8px rgba(124,111,255,0.6); }
+
+.key-label  { font-size: 8px; font-weight: 300; opacity: 0.45; pointer-events: none; line-height: 1; }
+.white-key .key-label { color: #444; }
+.black-key .key-label { color: rgba(255,255,255,0.45); }
+.note-label { font-size: 9px; font-weight: 600; pointer-events: none; margin-bottom: 2px; line-height: 1; }
+.white-key .note-label { color: var(--accent); opacity: 0.7; }
+.black-key .note-label { color: var(--accent2); opacity: 0.8; font-size: 7.5px; }
+
+/* Controls */
+.controls { width: 100%; max-width: 760px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.control-card {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+  transition: border-color 0.2s, background 0.35s; backdrop-filter: blur(10px);
+}
+.control-card:hover { border-color: rgba(124,111,255,0.25); }
+.control-card.full  { grid-column: 1 / -1; }
+.ctrl-label { font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; min-width: 52px; }
+
+.vol-slider {
+  flex: 1; -webkit-appearance: none; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent) var(--val,30%), var(--slider-track) var(--val,30%));
+  outline: none; cursor: pointer;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: white; box-shadow: 0 0 8px var(--accent); cursor: pointer; transition: transform 0.15s;
+}
+.vol-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
+.vol-value { font-size: 0.65rem; color: var(--text-dim); min-width: 28px; text-align: right; }
+
+.toggle-wrap { display: flex; align-items: center; flex: 1; justify-content: flex-end; }
+.toggle { position: relative; width: 36px; height: 20px; }
+.toggle input { display: none; }
+.toggle-track { position: absolute; inset: 0; background: var(--slider-track); border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+.toggle input:checked ~ .toggle-track { background: var(--accent); border-color: var(--accent); }
+.toggle-thumb { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; background: white; border-radius: 50%; transition: transform 0.2s; pointer-events: none; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+.toggle input:checked ~ .toggle-track .toggle-thumb { transform: translateX(16px); }
+
+.midi-select {
+  flex: 1; background: var(--select-bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: 'DM Sans',sans-serif; font-size: 0.7rem; padding: 5px 10px;
+  outline: none; cursor: pointer; transition: border-color 0.2s, background 0.35s;
+}
+.midi-select:focus { border-color: rgba(124,111,255,0.4); }
+.midi-select option { background: #1a1a26; color: #e8e8f0; }
+
+.midi-refresh {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--btn-bg); border: 1px solid var(--border); color: var(--text-dim);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; transition: all 0.2s; flex-shrink: 0;
+}
+.midi-refresh:hover { background: rgba(124,111,255,0.15); color: var(--accent); border-color: var(--accent); }
+
+.transpose-wrap { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+.t-btn {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--btn-bg); border: 1px solid var(--border); color: var(--text);
+  font-size: 14px; font-weight: 300; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.t-btn:hover { background: rgba(124,111,255,0.15); border-color: var(--accent); color: var(--accent); }
+.t-btn:active { transform: scale(0.92); }
+.t-val  { font-size: 0.75rem; font-weight: 300; min-width: 52px; text-align: center; color: var(--text); }
+.t-note { font-size: 0.6rem; color: var(--accent); }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE LAYOUT  (≤ 640px)
+   - Full-screen fixed layout
+   - Top half: piano hero
+   - Bottom half: slide-up keyboard drawer
+══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+
+  body { overflow: hidden; height: 100vh; height: 100dvh; }
+
+  /* Hide the normal scrollable desktop app */
+  .app { display: none !important; }
+
+  /* ── Mobile shell ── */
+  .mobile-shell {
+    display: flex !important;
+    flex-direction: column;
+    height: 100vh; height: 100dvh;
+    position: fixed; inset: 0;
+    overflow: hidden;
+  }
+
+  /* Top half — piano hero */
+  .mob-top {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 18px 16px 12px;
+    gap: 10px;
+    position: relative; overflow: hidden;
+  }
+
+  .mob-top::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 100% 80% at 50% 0%, rgba(124,111,255,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 50% at 90% 80%, rgba(255,111,145,0.09) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .mob-header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; position: relative; z-index: 1;
+  }
+  .mob-title {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 1.6rem;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent) 55%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    letter-spacing: 0.08em;
+  }
+  .mob-theme-btn {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--btn-bg); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; cursor: pointer; transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .mob-theme-btn:active { transform: scale(0.9); }
+
+  /* Mobile piano card */
+  .mob-piano-card {
+    width: 100%; position: relative; z-index: 1;
+    background: var(--ring-bg); border: 1px solid var(--ring-border);
+    border-radius: 20px; padding: 16px 14px 18px;
+    box-shadow: 0 0 40px rgba(124,111,255,0.1), 0 20px 50px var(--ring-shadow),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+    transition: background 0.35s, border-color 0.35s;
+  }
+  .mob-piano-card::before {
+    content: ''; position: absolute; top: -1px; left: 15%; right: 15%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.5;
+  }
+  .mob-piano-hint {
+    font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--text-dim); text-align: center; margin-bottom: 12px;
+  }
+
+  /* Mobile piano keys — scrollable horizontally */
+  .mob-piano-scroll {
+    overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .mob-piano-scroll::-webkit-scrollbar { display: none; }
+
+  .mob-piano {
+    position: relative;
+    height: 110px;
+    /* width set by JS */
+  }
+
+  /* Slightly smaller keys on mobile */
+  .mob-piano .white-key { width: 38px; height: 110px; padding-bottom: 7px; }
+  .mob-piano .white-key .key-label { display: none; }
+  .mob-piano .black-key { width: 24px; height: 68px; padding-bottom: 6px; }
+  .mob-piano .black-key .key-label { display: none; }
+
+  /* ── Bottom drawer — keyboard ── */
+  .mob-drawer {
+    background: var(--drawer-bg);
+    border-top: 1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    padding: 0 0 var(--safe-bottom);
+    transition: background 0.35s;
+    flex-shrink: 0;
+  }
+
+  /* Drag handle */
+  .drawer-handle {
+    width: 100%; padding: 10px 0 6px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    cursor: pointer;
+  }
+  .drawer-pill {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--border); flex-shrink: 0;
+  }
+  .drawer-title {
+    font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text-dim);
+  }
+
+  /* Keyboard grid */
+  .mob-keyboard {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+    padding: 6px 12px 14px;
+  }
+
+  .mob-key {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; cursor: pointer;
+    transition: background 0.08s, transform 0.08s, border-color 0.08s;
+    user-select: none; -webkit-user-select: none;
+    backdrop-filter: blur(8px);
+    position: relative; overflow: hidden;
+  }
+  .mob-key::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent);
+    pointer-events: none;
+  }
+  .mob-key:active, .mob-key.active {
+    background: rgba(124,111,255,0.25);
+    border-color: var(--accent);
+    transform: scale(0.92);
+  }
+  .mob-key-kb   { font-size: 11px; font-weight: 300; color: var(--text-dim); line-height: 1; }
+  .mob-key-note { font-size: 8px; font-weight: 600; color: var(--accent); line-height: 1; letter-spacing: 0.03em; }
+  .mob-key.black-note .mob-key-note { color: var(--accent2); }
+  .mob-key.black-note { background: rgba(124,111,255,0.07); }
+
+  /* Controls strip */
+  .mob-controls {
+    display: flex; gap: 8px; align-items: center;
+    padding: 0 12px 10px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .mob-controls::-webkit-scrollbar { display: none; }
+
+  .mob-ctrl-chip {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 7px 12px;
+    white-space: nowrap; flex-shrink: 0;
+    backdrop-filter: blur(8px);
+    transition: background 0.35s;
+  }
+  .mob-ctrl-lbl { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
+
+  .mob-vol {
+    width: 70px; -webkit-appearance: none; height: 3px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent) var(--val,30%), var(--slider-track) var(--val,30%));
+    outline: none; cursor: pointer;
+  }
+  .mob-vol::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+    background: white; box-shadow: 0 0 6px var(--accent); cursor: pointer;
+  }
+
+  .mob-toggle { position: relative; width: 32px; height: 18px; }
+  .mob-toggle input { display: none; }
+  .mob-toggle-track { position: absolute; inset: 0; background: var(--slider-track); border-radius: 9px; border: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+  .mob-toggle input:checked ~ .mob-toggle-track { background: var(--accent); border-color: var(--accent); }
+  .mob-toggle-thumb { position: absolute; top: 3px; left: 3px; width: 10px; height: 10px; background: white; border-radius: 50%; transition: transform 0.2s; pointer-events: none; }
+  .mob-toggle input:checked ~ .mob-toggle-track .mob-toggle-thumb { transform: translateX(14px); }
+
+  .mob-t-btn {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--btn-bg); border: 1px solid var(--border); color: var(--text);
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .mob-t-btn:active { transform: scale(0.88); background: rgba(124,111,255,0.2); }
+  .mob-t-val { font-size: 0.68rem; min-width: 30px; text-align: center; color: var(--text); }
+  .mob-t-note { font-size: 0.55rem; color: var(--accent); }
+}
+
+/* Desktop: hide mobile shell */
+@media (min-width: 641px) {
+  .mobile-shell { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ DESKTOP APP ══════════════════════════════════════════════ -->
+<div class="app">
+  <div class="top-bar">
+    <header>
+      <h1>Web Harmonium</h1>
+      <p>keyboard & midi instrument</p>
+    </header>
+    <button class="theme-btn" onclick="toggleTheme()">
+      <span class="theme-icon" id="theme-icon">🌙</span>
+      <span id="theme-label">Light</span>
+    </button>
+  </div>
+
+  <div class="piano-stage">
+    <div class="piano-glow-ring">
+      <div class="piano-label">Piano — Use keyboard keys to play</div>
+      <div class="piano-top-bar"></div>
+      <div class="piano" id="piano-desktop"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="control-card">
+      <span class="ctrl-label">Volume</span>
+      <input class="vol-slider" type="range" id="vol-desktop" min="0" max="100" value="30"
+        oninput="updateVolume(this.value,'vol-desktop','vol-display-d')" style="--val:30%">
+      <span class="vol-value" id="vol-display-d">30</span>
+    </div>
+    <div class="control-card">
+      <span class="ctrl-label">Reverb</span>
+      <div class="toggle-wrap">
+        <label class="toggle">
+          <input type="checkbox" onchange="toggleReverb(this.checked)">
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        </label>
+      </div>
+    </div>
+    <div class="control-card full">
+      <span class="ctrl-label">MIDI</span>
+      <select class="midi-select" id="midi-select"><option>Midi Through Port-0 by</option></select>
+      <button class="midi-refresh" onclick="refreshMidi()">↻</button>
+    </div>
+    <div class="control-card full">
+      <span class="ctrl-label">Transpose</span>
+      <div class="transpose-wrap">
+        <button class="t-btn" onclick="transpose(-1)">−</button>
+        <div class="t-val"><span id="t-num-d">0</span> <span class="t-note" id="t-note-d">C</span></div>
+        <button class="t-btn" onclick="transpose(1)">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MOBILE SHELL ═════════════════════════════════════════════ -->
+<div class="mobile-shell">
+
+  <!-- Top half: Piano -->
+  <div class="mob-top">
+    <div class="mob-header">
+      <div class="mob-title">Web Harmonium</div>
+      <button class="mob-theme-btn" onclick="toggleTheme()" id="mob-theme-btn">🌙</button>
+    </div>
+    <div class="mob-piano-card">
+      <div class="mob-piano-hint">Tap keys to play</div>
+      <div class="mob-piano-scroll">
+        <div class="mob-piano" id="piano-mobile"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom half: Keyboard + controls drawer -->
+  <div class="mob-drawer">
+    <div class="drawer-handle">
+      <div class="drawer-pill"></div>
+      <div class="drawer-title">Keyboard</div>
+      <div class="drawer-pill"></div>
+    </div>
+
+    <!-- Keyboard rows -->
+    <div class="mob-keyboard" id="mob-keyboard"></div>
+
+    <!-- Mini controls strip -->
+    <div class="mob-controls">
+      <!-- Volume -->
+      <div class="mob-ctrl-chip">
+        <span class="mob-ctrl-lbl">Vol</span>
+        <input class="mob-vol" type="range" id="vol-mobile" min="0" max="100" value="30"
+          oninput="updateVolume(this.value,'vol-mobile','vol-display-m')" style="--val:30%">
+      </div>
+      <!-- Reverb -->
+      <div class="mob-ctrl-chip">
+        <span class="mob-ctrl-lbl">Reverb</span>
+        <label class="mob-toggle">
+          <input type="checkbox" onchange="toggleReverb(this.checked)">
+          <div class="mob-toggle-track"><div class="mob-toggle-thumb"></div></div>
+        </label>
+      </div>
+      <!-- Transpose -->
+      <div class="mob-ctrl-chip">
+        <span class="mob-ctrl-lbl">Transpose</span>
+        <button class="mob-t-btn" onclick="transpose(-1)">−</button>
+        <div class="mob-t-val"><span id="t-num-m">0</span> <span class="mob-t-note" id="t-note-m">C</span></div>
+        <button class="mob-t-btn" onclick="transpose(1)">+</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── Theme ──────────────────────────────────────────────────────
+let isLight = false;
+function toggleTheme() {
+  isLight = !isLight;
+  document.body.classList.toggle('light', isLight);
+  const icon  = isLight ? '☀️' : '🌙';
+  const label = isLight ? 'Dark' : 'Light';
+  const ti = document.getElementById('theme-icon');
+  const tl = document.getElementById('theme-label');
+  const mb = document.getElementById('mob-theme-btn');
+  if (ti) ti.textContent  = icon;
+  if (tl) tl.textContent  = label;
+  if (mb) mb.textContent  = icon;
+}
+
+// ─── Audio ──────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx=null, masterGain=null, reverbNode=null;
+let dryGain=null, wetGain=null, compressor=null;
+let reverbEnabled=false, currentTranspose=0, volume=0.30;
+
+function getAudio() {
+  if (!audioCtx) {
+    audioCtx = new AudioCtx();
+    compressor = audioCtx.createDynamicsCompressor();
+    compressor.threshold.value=-18; compressor.knee.value=8;
+    compressor.ratio.value=4; compressor.attack.value=0.003; compressor.release.value=0.15;
+    masterGain = audioCtx.createGain(); masterGain.gain.value = volume;
+    compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
+    buildReverb();
+  }
+  return audioCtx;
+}
+function buildReverb() {
+  const ctx=audioCtx, len=ctx.sampleRate*2.8;
+  const buf=ctx.createBuffer(2,len,ctx.sampleRate);
+  for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);}
+  reverbNode=ctx.createConvolver(); reverbNode.buffer=buf;
+  dryGain=ctx.createGain(); wetGain=ctx.createGain();
+  dryGain.gain.value=1; wetGain.gain.value=0;
+  reverbNode.connect(wetGain); dryGain.connect(compressor); wetGain.connect(compressor);
+}
+function playNote(freq) {
+  const ctx=getAudio(); if(ctx.state==='suspended') ctx.resume();
+  const now=ctx.currentTime, dur=2.5;
+  const ng=ctx.createGain();
+  ng.gain.setValueAtTime(0.0001,now);
+  ng.gain.exponentialRampToValueAtTime(0.22,now+0.008);
+  ng.gain.exponentialRampToValueAtTime(0.12,now+0.12);
+  ng.gain.exponentialRampToValueAtTime(0.08,now+0.5);
+  ng.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  ng.connect(dryGain); ng.connect(reverbNode);
+  [{m:1,g:1},{m:2,g:.3},{m:3,g:.1},{m:4,g:.04}].forEach(({m,g})=>{
+    const o=ctx.createOscillator(), gn=ctx.createGain();
+    o.type='sine'; o.frequency.value=freq*m; gn.gain.value=g;
+    o.connect(gn); gn.connect(ng); o.start(now); o.stop(now+dur+.05);
+  });
+}
+
+// ─── Note layout ────────────────────────────────────────────────
+const A4=440;
+const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function noteToFreq(note,t=0) {
+  const m=note.match(/^([A-G]#?)(\d)$/);
+  const semis=(parseInt(m[2])-4)*12+NAMES.indexOf(m[1])-9+t;
+  return A4*Math.pow(2,semis/12);
+}
+
+const LAYOUT=[
+  {note:'C4', white:true, kb:'`'},  {note:'C#4',white:false,kb:'1'},
+  {note:'D4', white:true, kb:'q'},  {note:'D#4',white:false,kb:'2'},
+  {note:'E4', white:true, kb:'w'},  {note:'F4', white:true, kb:'e'},
+  {note:'F#4',white:false,kb:'4'},  {note:'G4', white:true, kb:'r'},
+  {note:'G#4',white:false,kb:'5'},  {note:'A4', white:true, kb:'t'},
+  {note:'A#4',white:false,kb:'6'},  {note:'B4', white:true, kb:'y'},
+  {note:'C5', white:true, kb:'u'},  {note:'C#5',white:false,kb:'8'},
+  {note:'D5', white:true, kb:'i'},  {note:'D#5',white:false,kb:'9'},
+  {note:'E5', white:true, kb:'o'},  {note:'F5', white:true, kb:'p'},
+  {note:'F#5',white:false,kb:'-'},  {note:'G5', white:true, kb:'['},
+  {note:'G#5',white:false,kb:'='},  {note:'A5', white:true, kb:']'},
+  {note:'A#5',white:false,kb:'\\'},  {note:'B5', white:true, kb:'z'},
+];
+
+// ─── Build piano (shared for desktop + mobile) ──────────────────
+const keyMaps = { desktop:{}, mobile:{} };
+const kbMap   = {};
+
+function buildPiano(containerId, context) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const isM = context === 'mobile';
+  const KW = isM ? 38 : 44;
+  const whites = LAYOUT.filter(k=>k.white);
+  container.style.width  = (whites.length * KW) + 'px';
+  container.style.height = (isM ? 110 : 140) + 'px';
+
+  let wi = 0;
+  LAYOUT.forEach(k => {
+    const el = document.createElement('div');
+    el.className = k.white ? 'white-key' : 'black-key';
+
+    if (!isM) {
+      const note = k.note.replace(/\d/,'');
+      if (k.white && ['C','E','F','A','B'].includes(note[0])) {
+        const ns=document.createElement('div'); ns.className='note-label'; ns.textContent=note; el.appendChild(ns);
+      }
+      const ks=document.createElement('div'); ks.className='key-label'; ks.textContent=k.kb.toUpperCase(); el.appendChild(ks);
+    }
+
+    el.style.left = k.white ? (wi*KW)+'px' : (wi*KW - (isM?12:14))+'px';
+    if (k.white) wi++;
+
+    const trigger = () => { getAudio(); playNote(noteToFreq(k.note, currentTranspose)); flashKey(el, k, context); };
+    el.addEventListener('mousedown', e => { e.preventDefault(); trigger(); });
+    el.addEventListener('touchstart', e => { e.preventDefault(); trigger(); }, {passive:false});
+
+    container.appendChild(el);
+    keyMaps[context][k.note] = el;
+    if (context === 'desktop') kbMap[k.kb] = k.note;
+  });
+}
+
+function flashKey(el, k, ctx) {
+  el.classList.add('active');
+  setTimeout(() => el.classList.remove('active'), 200);
+}
+
+// ─── Build mobile keyboard grid ─────────────────────────────────
+function buildMobKeyboard() {
+  const grid = document.getElementById('mob-keyboard');
+  if (!grid) return;
+  // Show all 24 notes as grid cells
+  LAYOUT.forEach(k => {
+    const el = document.createElement('div');
+    el.className = 'mob-key' + (k.white ? '' : ' black-note');
+    el.dataset.note = k.note;
+
+    const kb = document.createElement('div');
+    kb.className = 'mob-key-kb';
+    kb.textContent = k.kb === '\\' ? '\\' : k.kb.toUpperCase();
+
+    const note = document.createElement('div');
+    note.className = 'mob-key-note';
+    note.textContent = k.note.replace(/\d/,'');
+
+    el.appendChild(kb);
+    el.appendChild(note);
+
+    const trigger = () => {
+      getAudio();
+      playNote(noteToFreq(k.note, currentTranspose));
+      el.classList.add('active');
+      // Also flash piano key
+      const pk = keyMaps.mobile[k.note];
+      if (pk) { pk.classList.add('active'); setTimeout(()=>pk.classList.remove('active'),200); }
+      setTimeout(()=>el.classList.remove('active'),180);
+    };
+    el.addEventListener('mousedown', e => { e.preventDefault(); trigger(); });
+    el.addEventListener('touchstart', e => { e.preventDefault(); trigger(); }, {passive:false});
+
+    grid.appendChild(el);
+  });
+}
+
+// ─── Keyboard input (desktop) ───────────────────────────────────
+const pressed = new Set();
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  const key = e.key.toLowerCase();
+  const note = kbMap[key];
+  if (note && !pressed.has(key)) {
+    pressed.add(key);
+    getAudio(); playNote(noteToFreq(note, currentTranspose));
+    const el = keyMaps.desktop[note];
+    if (el) { el.classList.add('active'); setTimeout(()=>el.classList.remove('active'),200); }
+  }
+});
+document.addEventListener('keyup', e => pressed.delete(e.key.toLowerCase()));
+
+// ─── Controls ───────────────────────────────────────────────────
+function updateVolume(v, sliderId, displayId) {
+  volume = v/100;
+  if (masterGain) masterGain.gain.value = volume;
+  const s = document.getElementById(sliderId);
+  const d = document.getElementById(displayId);
+  if (s) s.style.setProperty('--val', v+'%');
+  if (d) d.textContent = v;
+  // sync both sliders
+  ['vol-desktop','vol-mobile'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.id !== sliderId) { el.value = v; el.style.setProperty('--val', v+'%'); }
+  });
+}
+
+function toggleReverb(on) {
+  reverbEnabled = on;
+  if (wetGain) wetGain.gain.setTargetAtTime(on ? 0.35 : 0.0, audioCtx.currentTime, 0.05);
+}
+
+function refreshMidi() {
+  if (!navigator.requestMIDIAccess) return;
+  navigator.requestMIDIAccess().then(midi => {
+    const sel = document.getElementById('midi-select');
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (const [,input] of midi.inputs) { const o=document.createElement('option'); o.textContent=input.name; sel.appendChild(o); }
+    if (!sel.options.length) { const o=document.createElement('option'); o.textContent='No MIDI devices'; sel.appendChild(o); }
+  });
+}
+
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function transpose(delta) {
+  currentTranspose = Math.max(-12, Math.min(12, currentTranspose + delta));
+  const noteStr = NOTES[((currentTranspose%12)+12)%12];
+  ['t-num-d','t-num-m'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=currentTranspose; });
+  ['t-note-d','t-note-m'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=noteStr; });
+}
+
+// ─── Init ────────────────────────────────────────────────────────
+buildPiano('piano-desktop', 'desktop');
+buildPiano('piano-mobile',  'mobile');
+buildMobKeyboard();
+window.addEventListener('load', refreshMidi);
+</script>
+</body>
+</html>
